@@ -163,18 +163,13 @@ class Gate {
 			$query = $sql->getSql();
 		}
 		try {
-			$info = $this->getDebugTrace();
-			$info['type'] = 'QueryLog';
-			$this->logQuery($sql, $info);
 			$statement = $this->prepare($query);
 			$this->bind($statement, $params);
 			$statement->execute();
+			$this->logQuery($sql);
 			return $statement->rowCount();
 		} catch (\PDOException $e) {
-			$info = $this->getDebugTrace();
-			$info['message'] = $e->getMessage();
-			$info['level'] = \Psr\Log\LogLevel::ERROR;
-			$this->logQuery($sql, $info);
+			$this->logQuery($sql, array('message' => $e->getMessage(), 'level' => \Psr\Log\LogLevel::ERROR));
 			if ($e->getCode() === '23000') {
 				throw new IntegrityConstraintViolationException($e->getMessage());
 			} else {
@@ -200,17 +195,12 @@ class Gate {
 			$query = $sql->getSql();
 		}
 		try {
-			$info = $this->getDebugTrace();
-			$info['type'] = 'QueryLog';
-			$this->logQuery($sql, $info);
 			$statement = $this->prepare($query);
 			$this->bind($statement, $params);
 			$statement->execute();
+			$this->logQuery($sql);
 		} catch(\PDOException $e) {
-			$info = $this->getDebugTrace();
-			$info['message'] = $e->getMessage();
-			$info['level'] = \Psr\Log\LogLevel::ERROR;
-			$this->logQuery($sql, $info);
+			$this->logQuery($sql, array('message' => $e->getMessage(), 'level' => \Psr\Log\LogLevel::ERROR));
 			throw new QueryException($e->getMessage());
 		}
 		return $statement;
@@ -327,7 +317,8 @@ class Gate {
 	 */
 	protected function logError($message) {
 		if (is_null($this->logger)) return;
-		$info['type'] = get_class($this);
+		$info = $this->getDebugTrace();
+		$info['type'] = 'QueryLog';
 		$this->logger->error($message, $info);
 	}
 
@@ -343,10 +334,16 @@ class Gate {
 			$params = $sql->getParams();
 			$query  = $sql->getSql();
 		}
+		$i = $this->getDebugTrace();
+		$info['class']    = isset($info['class'])    ? $info['class']    : $i['class'];
+		$info['function'] = isset($info['function']) ? $info['function'] : $i['function'];
+		$info['file']     = isset($info['file'])     ? $info['file']     : $i['file'];
+		$info['line']     = isset($info['line'])     ? $info['line']     : $i['line'];
 		$parameters = empty($params) ? '' : "Parameters:\n" . print_r($params, true);
 		$message = isset($info['message']) ? $info['message'] : '';
-		$info['type'] = 'Query';
-		$this->logger->info("Query:\n$query\n$parameters\n$message", $info);
+		$info['type'] = 'QueryLog';
+		$level = isset($info['level']) ? $info['level'] : \Psr\Log\LogLevel::INFO;
+		$this->logger->log($level, "Query:\n$query\n$parameters\n$message", $info);
 	}
 
 	/**
