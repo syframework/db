@@ -24,7 +24,7 @@ class Gate {
 	 * @param string $password
 	 * @param array $driverOptions
 	 */
-	public function __construct($dsn, $username = '', $password = '', array $driverOptions = array()) {
+	public function __construct($dsn = 'sqlite::memory:', $username = '', $password = '', array $driverOptions = array()) {
 		$this->dsn           = $dsn;
 		$this->username      = $username;
 		$this->password      = $password;
