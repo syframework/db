@@ -12,17 +12,21 @@ class GateTest extends TestCase {
 	protected $gate;
 
 	protected function setUp() : void {
-		$this->gate = new Gate('sqlite:' . __DIR__ . '/database.db');
+		$this->gate = new Gate('sqlite::memory:');
 		$this->gate->execute('
-			CREATE TABLE test_table (
+			CREATE TABLE t_user (
 				id INTEGER PRIMARY KEY,
-				name TEXT NOT NULL
+				firstname TEXT NOT NULL,
+				lastname TEXT NOT NULL
 			)
 		');
+		$this->gate->insert('t_user', array('id' => 1, 'firstname' => 'John', 'lastname' => 'Doe'));
+		$this->gate->insert('t_user', array('id' => 2, 'firstname' => 'Jane', 'lastname' => 'Doe'));
+		$this->gate->insert('t_user', array('id' => 3, 'firstname' => 'John', 'lastname' => 'Wick'));
 	}
 	
 	protected function tearDown(): void {
-		$this->gate->execute('DROP TABLE test_table');
+		$this->gate->execute('DROP TABLE t_user');
 	}
 
 	public function testQuery() {
@@ -60,9 +64,9 @@ class GateTest extends TestCase {
 	}
 
 	public function testInsert() {
-		$this->gate->insert('test_table', array('id' => 1, 'name' => 'hello'));
-		$res = $this->gate->queryAll('SELECT * FROM test_table', PDO::FETCH_ASSOC);
-		$this->assertEquals($res, array(array('id' => '1', 'name' => 'hello')));
+		$this->gate->insert('t_user', array('id' => 4, 'firstname' => 'hello', 'lastname' => 'world'));
+		$res = $this->gate->queryAll('SELECT * FROM t_user WHERE id=4', PDO::FETCH_ASSOC);
+		$this->assertEquals($res, array(array('id' => '4', 'firstname' => 'hello', 'lastname' => 'world')));
 	}
 
 }
