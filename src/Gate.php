@@ -67,7 +67,6 @@ class Gate {
 		if (!isset($this->pdo)) {
 			try {
 				$this->pdo = PDOManager::getPDOInstance($this->dsn, $this->username, $this->password, $this->driverOptions);
-				$this->pdo->setAttribute(\PDO::ATTR_ERRMODE, \PDO::ERRMODE_EXCEPTION);
 			} catch (\PDOException $e) {
 				$this->logError($e->getMessage());
 				throw new PDOException($e->getMessage());
