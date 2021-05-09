@@ -69,7 +69,7 @@ class Gate {
 				$this->pdo = PDOManager::getPDOInstance($this->dsn, $this->username, $this->password, $this->driverOptions);
 			} catch (\PDOException $e) {
 				$this->logError($e->getMessage());
-				throw new PDOException($e->getMessage());
+				throw new PDOException($e->getMessage(), 0, $e);
 			}
 		}
 		return $this->pdo;
@@ -95,7 +95,7 @@ class Gate {
 			return $this->getPdo()->beginTransaction();
 		} catch (\PDOException $e) {
 			$this->logError($e->getMessage());
-			throw new TransactionException($e->getMessage());
+			throw new TransactionException($e->getMessage(), 0, $e);
 		}
 	}
 
@@ -110,7 +110,7 @@ class Gate {
 			return $this->getPdo()->commit();
 		} catch (\PDOException $e) {
 			$this->logError($e->getMessage());
-			throw new TransactionException($e->getMessage());
+			throw new TransactionException($e->getMessage(), 0, $e);
 		}
 	}
 
@@ -125,7 +125,7 @@ class Gate {
 			return $this->getPdo()->rollBack();
 		} catch (\PDOException $e) {
 			$this->logError($e->getMessage());
-			throw new TransactionException($e->getMessage());
+			throw new TransactionException($e->getMessage(), 0, $e);
 		}
 	}
 
@@ -142,7 +142,7 @@ class Gate {
 			return $this->getPdo()->prepare($sql, $driverOptions);
 		} catch (\PDOException $e) {
 			$this->logError($e->getMessage());
-			throw new PrepareException($e->getMessage());
+			throw new PrepareException($e->getMessage(), 0, $e);
 		}
 	}
 
@@ -169,10 +169,10 @@ class Gate {
 			return $statement->rowCount();
 		} catch (\PDOException $e) {
 			$this->logQuery($sql, array('message' => $e->getMessage(), 'level' => \Psr\Log\LogLevel::ERROR));
-			if ($e->getCode() === '23000') {
-				throw new IntegrityConstraintViolationException($e->getMessage());
+			if (intval($e->getCode()) === 23000) {
+				throw new IntegrityConstraintViolationException($e->getMessage(), 0, $e);
 			} else {
-				throw new ExecuteException($e->getMessage());
+				throw new ExecuteException($e->getMessage(), 0, $e);
 			}
 		}
 	}
@@ -200,7 +200,7 @@ class Gate {
 			$this->logQuery($sql);
 		} catch(\PDOException $e) {
 			$this->logQuery($sql, array('message' => $e->getMessage(), 'level' => \Psr\Log\LogLevel::ERROR));
-			throw new QueryException($e->getMessage());
+			throw new QueryException($e->getMessage(), 0, $e);
 		}
 		return $statement;
 	}
@@ -227,7 +227,7 @@ class Gate {
 				return $statement->fetchAll($fetchStyle, $fetchArgs, $ctorArgs);
 		} catch(\PDOException $e) {
 			$this->logError($e->getMessage());
-			throw new QueryAllException($e->getMessage());
+			throw new QueryAllException($e->getMessage(), 0, $e);
 		}
 	}
 
@@ -247,7 +247,7 @@ class Gate {
 			return $statement->fetchColumn($columnNumber);
 		} catch(\PDOException $e) {
 			$this->logError($e->getMessage());
-			throw new QueryColumnException($e->getMessage());
+			throw new QueryColumnException($e->getMessage(), 0, $e);
 		}
 	}
 
@@ -267,7 +267,7 @@ class Gate {
 			return $statement->fetchObject($className, $ctorArgs);
 		} catch(\PDOException $e) {
 			$this->logError($e->getMessage());
-			throw new QueryObjectException($e->getMessage());
+			throw new QueryObjectException($e->getMessage(), 0, $e);
 		}
 	}
 
@@ -289,7 +289,7 @@ class Gate {
 			return $statement->fetch($fetchStyle, $cursorOrientation, $cursorOffset);
 		} catch(\PDOException $e) {
 			$this->logError($e->getMessage());
-			throw new QueryOneException($e->getMessage());
+			throw new QueryOneException($e->getMessage(), 0, $e);
 		}
 	}
 
